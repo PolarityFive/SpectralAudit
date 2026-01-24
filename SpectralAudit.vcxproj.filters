@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Model">
+      <UniqueIdentifier>{9be5c71f-9987-4993-a03f-5815e4fa952b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{99aca80e-3567-4fce-875d-7136955e4737}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{743b82c5-ae86-4da2-985c-bd63dbc74e06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Core\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Persistence">
+      <UniqueIdentifier>{5a9b975b-bed5-4114-9f7d-859099d7110f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Model\Track.cpp">
+      <Filter>Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\SpectrogramPngWriter.h">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\SpectrogramPngWriter.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Core\FeatureExtractor.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Mp3Decoder.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\StftProcessor.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\TrackAggregator.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\AudioMetadataExtractor.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="TrackBatchProcessor.cpp" />
+    <ClCompile Include="Persistence\SqliteDatabase.cpp">
+      <Filter>Persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\BlackMetalSanitizer.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\StftProcessor.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FeatureExtractor.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Mp3Decoder.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\Constants.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\TrackAggregator.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Track.h">
+      <Filter>Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\TrackData.h">
+      <Filter>Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AudioMetadataExtractor.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackBatchProcessor.h" />
+    <ClInclude Include="Persistence\SqliteDatabase.h">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\BlackMetalSanitizer.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Third Party\stb_image_write.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Third Party\minimp3.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Third Party\minimp3_ex.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Third Party\stb_image.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
