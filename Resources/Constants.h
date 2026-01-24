@@ -3,6 +3,7 @@
 namespace CONSTANTS {
     constexpr const char* INPUT_DIRECTORY = R"(T:\Music\Pop\Lady Gaga - The Fame)";
     constexpr const char* DB_PATH = R"(Q:\\Visual Studio Projects\\Sqlite\\spectral_audit.db)";
+    constexpr const char* DB_PATH_V2 = R"(Q:\\Visual Studio Projects\\Sqlite\\spectral_audit_V0.2.db)";
     constexpr int WINDOW_SIZE = 2048;
     constexpr int HOP_SIZE = 256;
 }

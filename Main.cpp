@@ -25,7 +25,7 @@ int main() {
 
     const auto t1 = clock::now();
 
-    SqliteDatabase db(CONSTANTS::DB_PATH);
+    SqliteDatabase db(CONSTANTS::DB_PATH_V2);
     for (const Track& track : tracks) {
         db.insertTrack(track);
     }
