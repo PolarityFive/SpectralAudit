@@ -3,8 +3,11 @@
 #define MINIMP3_IMPLEMENTATION
 #pragma warning(push)
 #pragma warning(disable : 4267 4244 6385 6386 6262)
+#include <iostream>
+
 #include "../Third Party/minimp3.h"
 #include "../Third Party/minimp3_ex.h"
+#include "../Utilities/BlackMetalSanitizer.h"
 #pragma warning(pop)
 
 bool Mp3Decoder::decodeMp3Mono(const std::string& path, std::vector<double>& samples, int& sampleRate) {
@@ -32,4 +35,24 @@ bool Mp3Decoder::decodeMp3Mono(const std::string& path, std::vector<double>& sam
 
     std::free(info.buffer);
     return true;
+}
+
+std::optional<DecodedAudio> Mp3Decoder::decode(const std::filesystem::path& path, std::size_t minSamples) {
+    DecodedAudio out;
+
+    auto safePath = BlackMetalSanitizer::makeSafeTempCopy(path);
+    const bool ok = decodeMp3Mono(safePath.string(), out.samples, out.sampleRate);
+    BlackMetalSanitizer::cleanup(safePath);
+
+    if (!ok) {
+        std::cerr << "Decode failed: " << path << '\n';
+        return std::nullopt;
+    }
+
+    if (out.samples.size() < minSamples) {
+        std::cerr << "Too short: " << path << '\n';
+        return std::nullopt;
+    }
+
+    return out;
 }

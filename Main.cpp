@@ -21,14 +21,16 @@ int main() {
 
     const auto t0 = clock::now();
     TrackBatchProcessor batchProcessor(CONSTANTS_TEST::TEST_DIRECTORY);
-    auto tracks = batchProcessor.run();
+    std::vector<Track> tracks = batchProcessor.runParallel(13,32);
 
     const auto t1 = clock::now();
 
-    SqliteDatabase db(CONSTANTS::DB_PATH_V2);
+    SqliteDatabase db(CONSTANTS::DB_PATH_V3);
+    db.begin();
     for (const Track& track : tracks) {
         db.insertTrack(track);
     }
+    db.commit();
 
     const auto t2 = clock::now();
 

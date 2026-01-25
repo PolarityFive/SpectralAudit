@@ -82,4 +82,3 @@ TrackFeatures TrackAggregator::aggregate(const std::vector<FrameFeatures>& frame
 
     return out;
 }
-

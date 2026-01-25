@@ -145,6 +145,7 @@
     <ClCompile Include="TrackBatchProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Queue\BlockingQueue.h" />
     <ClInclude Include="Utilities\AudioMetadataExtractor.h" />
     <ClInclude Include="Third Party\minimp3.h" />
     <ClInclude Include="Third Party\minimp3_ex.h" />
@@ -160,6 +161,11 @@
     <ClInclude Include="Model\TrackData.h" />
     <ClInclude Include="Core\Mp3Decoder.h" />
     <ClInclude Include="Core\StftProcessor.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
