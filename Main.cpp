@@ -20,12 +20,12 @@ int main() {
     using clock = std::chrono::steady_clock;
 
     const auto t0 = clock::now();
-    TrackBatchProcessor batchProcessor(CONSTANTS_TEST::TEST_DIRECTORY);
+    TrackBatchProcessor batchProcessor(CONSTANTS::INPUT_DIRECTORY);
     std::vector<Track> tracks = batchProcessor.runParallel(13,32);
 
     const auto t1 = clock::now();
 
-    SqliteDatabase db(CONSTANTS::DB_PATH_V3);
+    SqliteDatabase db(CONSTANTS::DB_PATH_V4);
     db.begin();
     for (const Track& track : tracks) {
         db.insertTrack(track);

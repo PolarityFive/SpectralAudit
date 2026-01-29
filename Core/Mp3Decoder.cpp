@@ -16,26 +16,35 @@ bool Mp3Decoder::decodeMp3Mono(const std::string& path, std::vector<double>& sam
 
     mp3dec_init(&decoder);
 
-    if (mp3dec_load(&decoder, path.c_str(), &info, nullptr, nullptr) != 0) {
+    if (mp3dec_load(&decoder, path.c_str(), &info, nullptr, nullptr) != 0)
         return false;
-    }
 
     sampleRate = info.hz;
     const int channels = info.channels;
 
-    samples.resize(info.samples / channels);
+    if (channels <= 0 || sampleRate <= 0 || info.samples <= 0 || info.buffer == nullptr) {
+        if (info.buffer) std::free(info.buffer);
+        return false;
+    }
 
-    for (size_t i = 0, j = 0; i < info.samples; i += channels, ++j) {
+    const size_t total = static_cast<size_t>(info.samples);
+    const size_t ch = static_cast<size_t>(channels);
+    const size_t frameCount = total / ch;
+
+    samples.resize(frameCount);
+
+    for (size_t frame = 0; frame < frameCount; ++frame) {
+        const size_t base = frame * ch;
         double sum = 0.0;
-        for (int c = 0; c < channels; ++c) {
-            sum += info.buffer[i + c];
-        }
-        samples[j] = (sum / channels) / 32768.0;
+        for (size_t c = 0; c < ch; ++c)
+            sum += info.buffer[base + c];
+        samples[frame] = (sum / static_cast<double>(channels)) / 32768.0;
     }
 
     std::free(info.buffer);
     return true;
 }
+
 
 std::optional<DecodedAudio> Mp3Decoder::decode(const std::filesystem::path& path, std::size_t minSamples) {
     DecodedAudio out;

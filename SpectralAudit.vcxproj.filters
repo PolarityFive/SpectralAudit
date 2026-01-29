@@ -59,6 +59,9 @@
     <ClCompile Include="Utilities\BlackMetalSanitizer.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\Logger.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\StftProcessor.h">
@@ -104,5 +107,16 @@
     <ClInclude Include="Third Party\stb_image.h">
       <Filter>Core\Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Queue\BlockingQueue.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Logger.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

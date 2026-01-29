@@ -134,6 +134,7 @@
     <ClCompile Include="Utilities\AudioMetadataExtractor.cpp" />
     <ClCompile Include="Utilities\BlackMetalSanitizer.cpp" />
     <ClCompile Include="Core\FeatureExtractor.cpp" />
+    <ClCompile Include="Utilities\Logger.cpp" />
     <ClCompile Include="Utilities\SpectrogramPngWriter.cpp" />
     <ClCompile Include="Utilities\SpectrogramPngWriter.h" />
     <ClCompile Include="Main.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="Model\TrackData.h" />
     <ClInclude Include="Core\Mp3Decoder.h" />
     <ClInclude Include="Core\StftProcessor.h" />
+    <ClInclude Include="Utilities\Logger.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />

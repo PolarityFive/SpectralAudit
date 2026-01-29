@@ -42,32 +42,35 @@ void StftProcessor::buildHannWindow() {
 }
 
 std::vector<std::vector<double>> StftProcessor::computeMagnitudes(const std::vector<double>& samples) {
-    if (samples.size() < static_cast<size_t>(windowSize)) {
+    const size_t total = samples.size();
+    const size_t ws = static_cast<size_t>(windowSize);
+    const size_t hs = static_cast<size_t>(hopSize);
+
+    if (total < ws) 
         return {};
-    }
 
-    const int frameCount = 1 + static_cast<int>((samples.size() - windowSize) / hopSize);
+    const size_t frameCount = 1 + (total - ws) / hs;
 
-    std::vector<std::vector<double>> magnitudes(frameCount, std::vector<double>(frequencyBins));
+    std::vector<std::vector<double>> magnitudes(frameCount, std::vector<double>(static_cast<size_t>(frequencyBins)));
 
-    for (int frame = 0; frame < frameCount; ++frame) {
-        const int offset = frame * hopSize;
+    for (size_t frame = 0; frame < frameCount; ++frame) {
+        const size_t offset = frame * hs;
 
-        for (int n = 0; n < windowSize; ++n) {
+        for (size_t n = 0; n < ws; ++n)
             fftInput[n] = samples[offset + n] * hannWindow[n];
-        }
 
         fftw_execute(fftPlan);
 
         for (int bin = 0; bin < frequencyBins; ++bin) {
             const double re = fftOutput[bin][0];
             const double im = fftOutput[bin][1];
-            magnitudes[frame][bin] = std::sqrt(re * re + im * im);
+            magnitudes[frame][static_cast<size_t>(bin)] = std::sqrt(re * re + im * im);
         }
     }
 
     return magnitudes;
 }
+
 
 int StftProcessor::getFrequencyBins() const {
     return frequencyBins;

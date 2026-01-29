@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #endif
 
-void BlackMetalSanitizer::setupConsole() {
+void BlackMetalSanitizer::setupConsole() { //Black metal forced me to do this, therefore the console belongs to black metal.
 #ifdef _WIN32
     _setmode(_fileno(stdout), _O_U16TEXT);
 #endif
@@ -42,7 +42,7 @@ std::filesystem::path BlackMetalSanitizer::makeSafeTempCopy(const std::filesyste
     fs::path tempDir = fs::temp_directory_path() / "spectral_audit";
     fs::create_directories(tempDir);
     fs::path safePath = tempDir / sanitizeFilename(originalPath);
-    fs::copy_file(originalPath, safePath,fs::copy_options::overwrite_existing);
+    fs::copy_file(originalPath, safePath, fs::copy_options::overwrite_existing);
 
     return safePath;
 }

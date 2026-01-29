@@ -1,7 +1,5 @@
 #include "TrackBatchProcessor.h"
 
-#include <iostream>
-
 #include "Utilities/AudioMetadataExtractor.h"
 #include "Resources/Constants.h"
 
@@ -10,30 +8,26 @@
 #include "Core/FeatureExtractor.h"
 #include "Core/TrackAggregator.h"
 #include <mutex>
-#include "Queue/BlockingQueue.h"
-
-using namespace std;
 
 TrackBatchProcessor::TrackBatchProcessor(std::filesystem::path inputDirectory)
     : inputDirectory(std::move(inputDirectory)) {
 }
 
 std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std::size_t queueCapacity) {
-    namespace fs = std::filesystem;
+    Logger logger;
 
-    if (workerCount == 0)
+    if (workerCount == 0) 
         workerCount = 1;
-    if (queueCapacity == 0)
+
+    if (queueCapacity == 0) 
         queueCapacity = 1;
 
-    BlockingQueue<fs::path> workQueue(queueCapacity);
+    BlockingQueue<std::filesystem::path> workQueue(queueCapacity);
 
     std::vector<Track> results;
     results.reserve(256);
 
     std::mutex resultsMutex;
-    std::mutex logMutex;
-
     std::atomic<std::size_t> failedCount{ 0 };
     std::atomic<std::size_t> enqueuedCount{ 0 };
 
@@ -42,79 +36,79 @@ std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std
 
     for (std::size_t i = 0; i < workerCount; ++i) {
         workers.emplace_back([&] {
-            fs::path path;
-
-            while (workQueue.pop(path)) {
-                {
-                    std::lock_guard<std::mutex> lk(logMutex);
-                    std::wcout << L"Processing: " << path.wstring() << L'\n';
-                } 
-
-                std::optional<Track> track;
-
-                try {
-                    track = processTrack(path);
-                }
-                catch (const std::exception& e) {
-                    std::lock_guard<std::mutex> lk(logMutex);
-                    std::wcout << L"Exception processing " << path.wstring() << L": " << e.what() << L'\n';
-                }
-                catch (...) {
-                    std::lock_guard<std::mutex> lk(logMutex);
-                    std::wcout << L"Unknown exception processing " << path.wstring() << L'\n';
-                }
-
-                if (!track) {
-                    failedCount.fetch_add(1, std::memory_order_relaxed);
-                    continue;
-                }
-
-                {
-                    std::lock_guard<std::mutex> lk(resultsMutex);
-                    results.push_back(std::move(*track));
-                }
-            }
+            workerLoop(workQueue, results, resultsMutex, failedCount, logger);
             });
     }
 
     std::thread producer([&] {
-        try {
-            for (const auto& entry :
-                fs::recursive_directory_iterator(inputDirectory)) {
-
-                if (!entry.is_regular_file())
-                    continue;
-
-                const auto& path = entry.path();
-                const auto ext = path.extension();
-
-                if (ext != ".mp3" && ext != ".MP3")
-                    continue;
-
-                if (!workQueue.push(path))
-                    break;
-
-                enqueuedCount.fetch_add(1, std::memory_order_relaxed);
-            }
-        }
-        catch (const std::exception& e) {
-            std::lock_guard<std::mutex> lk(logMutex);
-            std::wcout << L"Filesystem error: " << e.what() << L'\n';
-        }
-
-        workQueue.close();
+        producerLoop(workQueue, enqueuedCount, logger);
         });
 
     producer.join();
     for (auto& w : workers)
         w.join();
 
-	std::lock_guard<std::mutex> lk(logMutex);
-	std::wcout << L"Processed: " << results.size() << L", Failed: " << failedCount.load() << L", Enqueued: " << enqueuedCount.load() << L'\n';
+    logger.logSummary(results.size(), failedCount.load(), enqueuedCount.load());
     return results;
 }
 
 
+void TrackBatchProcessor::workerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::vector<Track>& results, std::mutex& resultsMutex, std::atomic<std::size_t>& failedCount, Logger& logger)
+{
+    namespace fs = std::filesystem;
+    fs::path path;
+
+    while (workQueue.pop(path)) {
+
+        std::optional<Track> track;
+        logger.logGroupChange(path.parent_path().parent_path());
+
+        try {
+            track = processTrack(path);
+        }
+        catch (const std::exception& e) {
+            logger.logException(path, e);
+        }
+        catch (...) {
+            logger.logException(path, L"Unknown exception");
+        }
+
+        if (!track) {
+            failedCount.fetch_add(1, std::memory_order_relaxed);
+            continue;
+        }
+
+        std::lock_guard<std::mutex> lk(resultsMutex);
+        results.push_back(std::move(*track));
+    }
+}
+
+void TrackBatchProcessor::producerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::atomic<std::size_t>& enqueuedCount, Logger& logger) {
+    namespace fs = std::filesystem;
+
+    try {
+        for (const auto& entry : fs::recursive_directory_iterator(inputDirectory)) {
+
+            if (!entry.is_regular_file())
+                continue;
+
+            const auto& path = entry.path();
+            const auto ext = path.extension();
+
+            if (ext != ".mp3" && ext != ".MP3")
+                continue;
+
+            if (!workQueue.push(path))
+                break;
+
+            enqueuedCount.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+    catch (const std::exception& e) {
+        logger.logFilesystemError(e);
+    }
+    workQueue.close();
+}
 
 std::optional<Track> TrackBatchProcessor::processTrack(const std::filesystem::path& path) {
     auto decoded = Mp3Decoder::decode(path,CONSTANTS::WINDOW_SIZE);
@@ -132,7 +126,12 @@ TrackFeatures TrackBatchProcessor::extractTrackFeatures(const std::vector<double
     const int windowSize = CONSTANTS::WINDOW_SIZE;
     const int hopSize = CONSTANTS::HOP_SIZE;
 
-    StftProcessor stft(windowSize, hopSize);
+    if (samples.size() < windowSize) {
+        outFrameCount = 0;
+        return TrackFeatures{};
+    }
+
+    static thread_local StftProcessor stft(windowSize, hopSize);
     auto magnitudes = stft.computeMagnitudes(samples);
 
     FeatureExtractor extractor(sampleRate);
@@ -177,7 +176,10 @@ Track TrackBatchProcessor::buildTrack(const std::filesystem::path& path, const T
     metadata.path = path;
     metadata.sampleRate = sampleRate;
     metadata.totalSamples = totalSamples;
-    metadata.durationSeconds = static_cast<double>(totalSamples) / sampleRate;
+    metadata.durationSeconds = (sampleRate > 0) 
+		? (static_cast<double>(totalSamples) / sampleRate)
+        : 0.0;
+
     metadata.frameCount = frameCount;
 
     if (auto tags = AudioMetadataReader::extract(path)) {

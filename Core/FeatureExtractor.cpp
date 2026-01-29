@@ -1,5 +1,4 @@
 #include "FeatureExtractor.h"
-#include <cmath>
 #include <algorithm>
 
 static constexpr double EPS = 1e-12;
@@ -13,20 +12,23 @@ FrameFeatures FeatureExtractor::extract(const std::vector<double>& magnitudes) c
     FrameFeatures features{};
     const int bins = static_cast<int>(magnitudes.size());
 
-    if (bins == 0) 
+    if (bins < 2 || sampleRate <= 0)
         return features;
 
     const double nyquist = sampleRate * 0.5;
-    const double binHz = nyquist / bins;
-    const int hfSplitBin = std::min(bins,static_cast<int>(HF_SPLIT_HZ / binHz));
+    const double binHz = nyquist / (bins - 1);
+    if (binHz <= 0.0)
+        return features;
 
-    double energySum = 0.0;
-    double weightedFreqSum = 0.0;
-    double magSum = 0.0;
-    double logSum = 0.0;
-    double peak = 0.0;
-    double lowEnergy = 0.0;
-    double highEnergy = 0.0;
+    int hfSplitBin = static_cast<int>(HF_SPLIT_HZ / binHz);
+    if (hfSplitBin < 0) 
+        hfSplitBin = 0;
+
+    if (hfSplitBin > bins) 
+        hfSplitBin = bins;
+
+    double energySum = 0.0, weightedFreqSum = 0.0, magSum = 0.0, logSum = 0.0;
+    double peak = 0.0, lowEnergy = 0.0, highEnergy = 0.0;
 
     for (int i = 0; i < bins; ++i) {
         const double mag = magnitudes[i];
@@ -39,10 +41,10 @@ FrameFeatures FeatureExtractor::extract(const std::vector<double>& magnitudes) c
 
         weightedFreqSum += (i * binHz) * mag;
 
-        if (i < hfSplitBin)
+        if (i < hfSplitBin) 
             lowEnergy += mag2;
         else
-            highEnergy += mag2;
+        	highEnergy += mag2;
     }
 
     features.spectralRms = std::sqrt(energySum / bins);
@@ -59,7 +61,6 @@ FrameFeatures FeatureExtractor::extract(const std::vector<double>& magnitudes) c
     double cumulativeEnergy = 0.0;
 
     features.spectralRolloff85 = (bins - 1) * binHz;
-
     for (int i = 0; i < bins; ++i) {
         cumulativeEnergy += magnitudes[i] * magnitudes[i];
         if (cumulativeEnergy >= targetEnergy) {
@@ -70,5 +71,3 @@ FrameFeatures FeatureExtractor::extract(const std::vector<double>& magnitudes) c
 
     return features;
 }
-
-
