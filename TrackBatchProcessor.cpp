@@ -9,11 +9,13 @@
 #include "Core/TrackAggregator.h"
 #include <mutex>
 
-TrackBatchProcessor::TrackBatchProcessor(std::filesystem::path inputDirectory)
-    : inputDirectory(std::move(inputDirectory)) {
+TrackBatchProcessor::TrackBatchProcessor(std::filesystem::path inputDirectory,
+    TrackSink& sink)
+    : inputDirectory(std::move(inputDirectory)),
+    sink(sink) {
 }
 
-std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std::size_t queueCapacity) {
+void TrackBatchProcessor::runParallel(std::size_t workerCount, std::size_t queueCapacity) {
     Logger logger;
 
     if (workerCount == 0) 
@@ -24,10 +26,6 @@ std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std
 
     BlockingQueue<std::filesystem::path> workQueue(queueCapacity);
 
-    std::vector<Track> results;
-    results.reserve(256);
-
-    std::mutex resultsMutex;
     std::atomic<std::size_t> failedCount{ 0 };
     std::atomic<std::size_t> enqueuedCount{ 0 };
 
@@ -36,7 +34,7 @@ std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std
 
     for (std::size_t i = 0; i < workerCount; ++i) {
         workers.emplace_back([&] {
-            workerLoop(workQueue, results, resultsMutex, failedCount, logger);
+            workerLoop(workQueue, failedCount, logger);
             });
     }
 
@@ -48,13 +46,11 @@ std::vector<Track> TrackBatchProcessor::runParallel(std::size_t workerCount, std
     for (auto& w : workers)
         w.join();
 
-    logger.logSummary(results.size(), failedCount.load(), enqueuedCount.load());
-    return results;
+    logger.logSummary(enqueuedCount.load() - failedCount.load(), failedCount.load(), enqueuedCount.load());
 }
 
 
-void TrackBatchProcessor::workerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::vector<Track>& results, std::mutex& resultsMutex, std::atomic<std::size_t>& failedCount, Logger& logger)
-{
+void TrackBatchProcessor::workerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::atomic<std::size_t>& failedCount, Logger& logger) {
     namespace fs = std::filesystem;
     fs::path path;
 
@@ -78,8 +74,7 @@ void TrackBatchProcessor::workerLoop(BlockingQueue<std::filesystem::path>& workQ
             continue;
         }
 
-        std::lock_guard<std::mutex> lk(resultsMutex);
-        results.push_back(std::move(*track));
+        sink.consume(std::move(*track));
     }
 }
 

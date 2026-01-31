@@ -7,14 +7,15 @@
 #include "Model/Track.h"
 #include "Queue/BlockingQueue.h"
 #include "Utilities/Logger.h"
+#include "Persistence/TrackSink.h"
 
 class TrackBatchProcessor {
 public:
-    explicit TrackBatchProcessor(std::filesystem::path inputDirectory);
-    std::vector<Track> runParallel(std::size_t workerCount, std::size_t queueCapacity);
+    explicit TrackBatchProcessor(std::filesystem::path inputDirectory, TrackSink& sink);
+    void runParallel(std::size_t workerCount, std::size_t queueCapacity);
 
 private:
-    void workerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::vector<Track>& results, std::mutex& resultsMutex, std::atomic<std::size_t>& failedCount, Logger& logger);
+    void workerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::atomic<std::size_t>& failedCount, Logger& logger);
     void producerLoop(BlockingQueue<std::filesystem::path>& workQueue, std::atomic<std::size_t>& enqueuedCount, Logger& logger);
 
     TrackFeatures extractTrackFeatures(const std::vector<double>& samples,int sampleRate,std::size_t& outFrameCount);
@@ -23,4 +24,5 @@ private:
 
 private:
     std::filesystem::path inputDirectory;
+	TrackSink& sink;
 };

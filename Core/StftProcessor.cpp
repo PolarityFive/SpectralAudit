@@ -1,8 +1,13 @@
 #include "StftProcessor.h"
 #include <cmath>
+#include <mutex>
 #include <stdexcept>
 
 static constexpr double PI = 3.14159265358979323846;
+
+namespace {
+    std::mutex fftwPlannerMutex;
+}
 
 StftProcessor::StftProcessor(int windowSize, int hopSize)
     : windowSize(windowSize),
@@ -22,7 +27,11 @@ StftProcessor::StftProcessor(int windowSize, int hopSize)
         throw std::runtime_error("FFTW allocation failed");
     }
 
-    fftPlan = fftw_plan_dft_r2c_1d(windowSize, fftInput.data(), fftOutput, FFTW_ESTIMATE);
+    {
+        std::lock_guard<std::mutex> lk(fftwPlannerMutex);
+        fftPlan = fftw_plan_dft_r2c_1d(windowSize, fftInput.data(), fftOutput, FFTW_ESTIMATE);
+    }
+
     if (!fftPlan) {
         fftw_free(fftOutput);
         throw std::runtime_error("FFTW plan creation failed");
@@ -30,9 +39,17 @@ StftProcessor::StftProcessor(int windowSize, int hopSize)
 }
 
 StftProcessor::~StftProcessor() {
-    fftw_destroy_plan(fftPlan);
-    fftw_free(fftOutput);
+    if (fftPlan) {
+        std::lock_guard<std::mutex> lk(fftwPlannerMutex);
+        fftw_destroy_plan(fftPlan);
+        fftPlan = nullptr;
+    }
+    if (fftOutput) {
+        fftw_free(fftOutput);
+        fftOutput = nullptr;
+    }
 }
+
 
 void StftProcessor::buildHannWindow() {
     hannWindow.resize(windowSize);

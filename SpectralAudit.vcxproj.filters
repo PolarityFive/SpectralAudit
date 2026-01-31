@@ -62,6 +62,9 @@
     <ClCompile Include="Utilities\Logger.cpp">
       <Filter>Core\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Persistence\SqliteTrackSink.cpp">
+      <Filter>Core\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\StftProcessor.h">
@@ -111,6 +114,12 @@
       <Filter>Core\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Logger.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistence\TrackSink.h">
+      <Filter>Core\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistence\SqliteTrackSink.h">
       <Filter>Core\Header Files</Filter>
     </ClInclude>
   </ItemGroup>

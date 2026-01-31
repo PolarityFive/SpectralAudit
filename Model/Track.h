@@ -5,6 +5,7 @@
 
 class Track {
 public:
+    Track() = default;
     explicit Track(TrackMetadata metadata);
 
     void setTrackFeatures(TrackFeatures features);
